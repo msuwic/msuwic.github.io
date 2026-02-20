@@ -231,13 +231,26 @@ p {
 /* Media queries for mobile devices */
 
 /* For smaller screens (max-width: 600px) */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .about {
-        padding: 6em 2em 15em; /* Adjusted padding for mobile screens */
+        padding: 2em 1em;   /* minimal padding on small screens */
+        margin: 0 auto;    /* center the container */
+        text-align: center; /* center all text inside */
+    }
+
+    .about p {
+        text-align: center; /* override justify */
+        margin: 0 auto;     /* center paragraphs as blocks */
+        max-width: 90%;     /* optional: keeps text from stretching edge-to-edge */
+    }
+
+    .meeting-bit {
+        display: block;     /* stack icon + text nicely */
+        margin: 1em auto;
     }
 
     .meeting-text {
-        font-size: 5em 2em; /* Slightly smaller font size for better readability */
+        font-size: 1.2em;
     }
 }
 

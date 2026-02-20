@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Dashboard | MSU WiC</title>
+
+  <link rel="stylesheet" href="assets/css/bootstrap.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/auth.js"></script>
+</head>
+
+<body style="background:#fafafa;">
+  <!-- Top Navbar -->
+  <nav class="navbar navbar-default navbar-fixed-top" style="border-radius:0;">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <!-- Hamburger -->
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#dashMenu">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+
+        <a class="navbar-brand" href="dashboard.html" style="font-weight:600;">WiC Dashboard</a>
+      </div>
+
+      <div class="collapse navbar-collapse" id="dashMenu">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="#" id="menuHome">Home</a></li>
+          <li><a href="#" id="menuProfile">Profile</a></li>
+          <li><a href="#" id="menuLogout">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Layout -->
+  <div class="container" style="margin-top:80px; max-width: 980px;">
+    <div id="msg" class="alert" style="display:none;"></div>
+
+    <!-- HOME SECTION -->
+    <div id="sectionHome" style="display:none;">
+      <div class="jumbotron" style="background:white;">
+        <h3 id="homeWelcome" style="margin-top:0;">Welcome!</h3>
+        <p>Use the menu (top-right) to open your profile or logout.</p>
+
+        <!-- ✅ Attendance Stats (NEW) -->
+        <div id="statsCard" class="panel panel-default" style="max-width:520px; margin:18px auto 0; text-align:left;">
+          <div class="panel-heading">
+            <strong>This Semester</strong>
+          </div>
+          <div class="panel-body">
+            <div class="row" style="margin:0;">
+              <div class="col-xs-6" style="padding-left:0;">
+                <div style="color:#6B7280; font-weight:700;">Meetings attended</div>
+                <div id="statsAttended" style="font-size:22px; font-weight:900;">—</div>
+              </div>
+              <div class="col-xs-6" style="padding-right:0;">
+                <div style="color:#6B7280; font-weight:700;">Attendance rate</div>
+                <div id="statsPercent" style="font-size:22px; font-weight:900;">—</div>
+              </div>
+            </div>
+
+            <hr style="margin:14px 0;" />
+
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:#6B7280;">Total meetings held:</span>
+              <span id="statsTotal" style="font-weight:800;">—</span>
+            </div>
+
+            <p id="statsNote" style="margin-top:10px; margin-bottom:0; color:#6B7280;"></p>
+          </div>
+        </div>
+
+        <!-- Admin quick action (hidden unless you're admin) -->
+        <div id="adminQuickBox" style="display:none; margin-top:18px;">
+          <hr />
+          <button class="btn btn-warning" id="promoteBtn" type="button">
+            Promote to Admin
+          </button>
+
+          <form id="promoteForm" style="display:none; margin-top:12px; max-width:520px;">
+            <div class="form-group">
+              <label for="promoteEmail">Member email</label>
+              <input id="promoteEmail" class="form-control" type="email" placeholder="someone@msu.edu" required />
+            </div>
+            <button class="btn btn-primary" type="submit">Confirm Promote</button>
+            <button class="btn btn-default" id="cancelPromote" type="button">Cancel</button>
+            <p id="promoteMsg" style="margin-top:10px;"></p>
+          </form>
+
+          <p style="margin-top:10px; color:#666;">
+            Note: the member must have signed up and logged in at least once.
+          </p>
+        </div>
+
+        <!-- Admin meeting controls (hidden unless admin) -->
+        <div id="adminMeetingBox" style="display:none; margin-top:18px; max-width:520px; margin-left:auto; margin-right:auto;">
+          <hr />
+          <h4 style="margin-top:0;">Admin: Meeting Controls</h4>
+
+          <form id="startMeetingForm">
+            <div class="form-group" style="text-align:left;">
+              <label for="meetingTitle">Meeting title</label>
+              <input id="meetingTitle" class="form-control" placeholder="WiC General Meeting" />
+            </div>
+
+            <button class="btn btn-primary" type="submit">Start Meeting</button>
+            <button class="btn btn-default" id="endMeetingBtn" type="button">End Meeting</button>
+
+            <p id="adminMeetingMsg" style="margin-top:10px;"></p>
+            <p id="adminMeetingCode" style="margin-top:6px; font-weight:600;"></p>
+          </form>
+
+          <p style="margin-top:10px; color:#666;">
+            Share the meeting code on the projector/board. Members must enter it within the check-in window.
+          </p>
+        </div>
+
+        <!-- Attendance (Member) -->
+        <div id="attendanceWrap" style="margin-top:18px; max-width:520px; margin-left:auto; margin-right:auto; text-align:center;">
+          <hr />
+          <button class="btn btn-success" id="logAttendanceBtn" type="button">
+            Log Attendance
+          </button>
+
+          <div id="attendanceBox" class="panel panel-default" style="display:none; margin-top:12px; text-align:left;">
+            <div class="panel-heading"><strong>Meeting Check-In</strong></div>
+            <div class="panel-body">
+              <form id="checkinForm">
+                <div class="form-group">
+                  <label for="meetingCode">Enter meeting code</label>
+                  <input id="meetingCode" class="form-control" placeholder="WIC-123456" required />
+                </div>
+                <button class="btn btn-primary" type="submit">Submit</button>
+                <button class="btn btn-default" id="cancelCheckinBtn" type="button">Cancel</button>
+                <p id="checkinMsg" style="margin-top:10px;"></p>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PROFILE SECTION -->
+    <div id="sectionProfile" style="display:none;">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <strong id="welcomeTitle">Your Profile</strong>
+        </div>
+        <div class="panel-body">
+          <p><strong>Email:</strong> <span id="profileEmail">—</span></p>
+          <p><strong>Full Name:</strong> <span id="profileFullName">—</span></p>
+          <p><strong>Major:</strong> <span id="profileMajor">—</span></p>
+          <p><strong>Graduation Year:</strong> <span id="profileGradYear">—</span></p>
+
+          <hr />
+
+          <h4 style="margin-top:0;">Edit Profile</h4>
+          <form id="profileForm">
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="form-group">
+                  <label for="fullName">Full name</label>
+                  <input id="fullName" class="form-control" required />
+                </div>
+              </div>
+
+              <div class="col-sm-6">
+                <div class="form-group">
+                  <label for="major">Major</label>
+                  <input id="major" class="form-control" />
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="form-group">
+                  <label for="gradYear">Graduation year</label>
+                  <input id="gradYear" class="form-control" type="number" min="2020" max="2100" />
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap toggle dependencies -->
+  <script src="assets/js/jquery.js"></script>
+  <script src="assets/js/bootstrap.js"></script>
+
+  <script>
+    const ADMIN_API_URL = "https://vnyvtomlbhtglzzyokbc.supabase.co/functions/v1/admin-api";
+    const ATTENDANCE_API_URL = "https://vnyvtomlbhtglzzyokbc.supabase.co/functions/v1/attendance-api";
+
+    async function callAttendanceApi(payload) {
+      const session = await window.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error("No session token found.");
+
+      const res = await fetch(ATTENDANCE_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "apikey": window.SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const text = await res.text();
+      try { return JSON.parse(text); } catch { return { ok: false, error: text }; }
+    }
+
+    async function callAdminApi(payload) {
+      const session = await window.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error("No access token found.");
+
+      const res = await fetch(ADMIN_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "apikey": window.SUPABASE_ANON_KEY || ""
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const text = await res.text();
+      try { return JSON.parse(text); } catch { return { ok: false, error: text }; }
+    }
+
+    function showMsg(text, type) {
+      const el = document.getElementById("msg");
+      el.style.display = "block";
+      el.className = "alert " + (type === "success" ? "alert-success" : "alert-danger");
+      el.textContent = text;
+    }
+
+    function clearMsg() {
+      const el = document.getElementById("msg");
+      el.style.display = "none";
+      el.textContent = "";
+    }
+
+    function showSection(sectionId) {
+      const sections = ["sectionHome", "sectionProfile"];
+      sections.forEach(id => {
+        document.getElementById(id).style.display = (id === sectionId) ? "block" : "none";
+      });
+
+      const menu = document.getElementById("dashMenu");
+      if (menu.classList.contains("in")) {
+        window.jQuery(menu).collapse("hide");
+      }
+    }
+
+    function setProfileUI(profile, email) {
+      document.getElementById("profileEmail").textContent = email || "—";
+      document.getElementById("profileFullName").textContent = profile?.full_name || "—";
+      document.getElementById("profileMajor").textContent = profile?.major || "—";
+      document.getElementById("profileGradYear").textContent =
+        (profile?.grad_year ?? profile?.grad_year === 0) ? String(profile.grad_year) : "—";
+
+      document.getElementById("fullName").value = profile?.full_name || "";
+      document.getElementById("major").value = profile?.major || "";
+      document.getElementById("gradYear").value = profile?.grad_year ?? "";
+    }
+
+    async function fetchProfile(userId) {
+      const { data, error } = await window.supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    }
+
+    async function upsertProfile(userId, email, profile) {
+      const payload = { id: userId, email, ...profile };
+      const { error } = await window.supabaseClient
+        .from("profiles")
+        .upsert(payload, { onConflict: "id" });
+
+      if (error) throw error;
+    }
+
+    async function updateEmail(userId, email) {
+      const { error } = await window.supabaseClient
+        .from("profiles")
+        .update({ email })
+        .eq("id", userId);
+
+      if (error) throw error;
+    }
+
+    // ====== NEW: semester time range helper ======
+    function semesterRangeISO() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth(); // 0=Jan
+
+      let start, end;
+
+      // Spring: Jan-May, Summer: Jun-Jul, Fall: Aug-Dec
+      if (m <= 4) {
+        start = new Date(y, 0, 1);
+        end   = new Date(y, 4, 31, 23, 59, 59);
+      } else if (m <= 6) {
+        start = new Date(y, 5, 1);
+        end   = new Date(y, 6, 31, 23, 59, 59);
+      } else {
+        start = new Date(y, 7, 1);
+        end   = new Date(y, 11, 31, 23, 59, 59);
+      }
+
+      return { start_iso: start.toISOString(), end_iso: end.toISOString() };
+    }
+
+    async function loadMyAttendanceStats() {
+      const attendedEl = document.getElementById("statsAttended");
+      const totalEl = document.getElementById("statsTotal");
+      const percentEl = document.getElementById("statsPercent");
+      const noteEl = document.getElementById("statsNote");
+
+      attendedEl.textContent = "—";
+      totalEl.textContent = "—";
+      percentEl.textContent = "—";
+      noteEl.textContent = "";
+
+      try {
+        const { start_iso, end_iso } = semesterRangeISO();
+        const result = await callAttendanceApi({ action: "my_stats", start_iso, end_iso });
+
+        if (!result.ok) {
+          noteEl.textContent = result.error || "Could not load attendance stats.";
+          return;
+        }
+
+        const attended = result.attended_count ?? 0;
+        const total = result.total_meetings ?? 0;
+        const pct = result.percent ?? (total > 0 ? Math.round((attended / total) * 100) : 0);
+
+        attendedEl.textContent = String(attended);
+        totalEl.textContent = String(total);
+        percentEl.textContent = `${pct}%`;
+
+        noteEl.textContent = total === 0
+          ? "No meetings recorded yet for this semester."
+          : `You’ve attended ${attended} of ${total} meetings so far.`;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("statsNote").textContent =
+          err.message || "Could not load attendance stats.";
+      }
+    }
+
+    (async () => {
+      const session = await window.requireAuth();
+      clearMsg();
+      showSection("sectionHome");
+
+      // 1) If pendingProfile exists (from signup), create profile now (must include full_name)
+      const pending = localStorage.getItem("pendingProfile");
+      if (pending) {
+        try {
+          const pendingProfile = JSON.parse(pending);
+          if (pendingProfile?.full_name && pendingProfile.full_name.trim().length > 0) {
+            await upsertProfile(session.user.id, session.user.email, {
+              full_name: pendingProfile.full_name.trim(),
+              major: pendingProfile.major?.trim?.() || null,
+              grad_year: pendingProfile.grad_year ?? null
+            });
+            localStorage.removeItem("pendingProfile");
+          }
+        } catch (e) {
+          console.error("pendingProfile upsert failed:", e);
+        }
+      }
+
+      // 2) Load profile
+      let profile = null;
+      try {
+        profile = await fetchProfile(session.user.id);
+      } catch (e) {
+        console.error(e);
+        showMsg("Could not load profile. Make sure profiles table + RLS policies are set.", "error");
+      }
+
+      // 3) Keep email synced
+      if (profile) {
+        try {
+          await updateEmail(session.user.id, session.user.email);
+          profile = await fetchProfile(session.user.id);
+        } catch (e) {
+          console.error("email update failed:", e);
+        }
+      }
+
+      // 4) Render UI
+      if (!profile) {
+        setProfileUI(null, session.user.email);
+        document.getElementById("welcomeTitle").textContent = "Your Profile";
+        document.getElementById("homeWelcome").textContent = "Welcome!";
+        showSection("sectionProfile");
+        showMsg("Please enter your full name to finish setting up your account.", "error");
+      } else {
+        document.getElementById("welcomeTitle").textContent =
+          profile.full_name ? `Profile — ${profile.full_name}` : "Your Profile";
+        document.getElementById("homeWelcome").textContent =
+          profile.full_name ? `Welcome, ${profile.full_name}!` : "Welcome!";
+        setProfileUI(profile, session.user.email);
+      }
+
+      // ✅ Load stats (NEW) – do this on home page
+      await loadMyAttendanceStats();
+
+      // ---- Attendance UI wiring ----
+      const logBtn = document.getElementById("logAttendanceBtn");
+      const box = document.getElementById("attendanceBox");
+      const cancelBtn = document.getElementById("cancelCheckinBtn");
+      const form = document.getElementById("checkinForm");
+      const msgEl = document.getElementById("checkinMsg");
+      const codeInput = document.getElementById("meetingCode");
+
+      function openAttendanceBox() {
+        msgEl.textContent = "";
+        codeInput.value = "";
+        box.style.display = "block";
+        codeInput.focus();
+      }
+
+      function closeAttendanceBox() {
+        msgEl.textContent = "";
+        box.style.display = "none";
+      }
+
+      logBtn.addEventListener("click", () => {
+        if (box.style.display === "none" || box.style.display === "") openAttendanceBox();
+        else closeAttendanceBox();
+      });
+
+      cancelBtn.addEventListener("click", () => closeAttendanceBox());
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        msgEl.textContent = "";
+
+        const code = codeInput.value.trim().toUpperCase();
+        if (!code) return;
+
+        try {
+          const result = await callAttendanceApi({ action: "check_in", code });
+          msgEl.textContent = result.ok
+            ? `✅ Attendance logged for: ${result.meeting?.title || "meeting"}`
+            : `❌ ${result.error || "Check-in failed"}`;
+
+          // refresh stats after successful check-in
+          if (result.ok) await loadMyAttendanceStats();
+        } catch (err) {
+          console.error(err);
+          msgEl.textContent = `❌ ${err.message || "Check-in failed"}`;
+        }
+      });
+
+      // --- Admin quick promote + meeting controls ---
+      if (profile && profile.role === "admin") {
+        document.getElementById("adminQuickBox").style.display = "block";
+        document.getElementById("adminMeetingBox").style.display = "block";
+
+        // Promote UI
+        const promoteBtn = document.getElementById("promoteBtn");
+        const promoteForm = document.getElementById("promoteForm");
+        const cancelPromote = document.getElementById("cancelPromote");
+        const promoteMsg = document.getElementById("promoteMsg");
+        const promoteEmail = document.getElementById("promoteEmail");
+
+        promoteBtn.addEventListener("click", () => {
+          promoteMsg.textContent = "";
+          promoteEmail.value = "";
+          promoteForm.style.display = (promoteForm.style.display === "none" ? "block" : "none");
+        });
+
+        cancelPromote.addEventListener("click", () => {
+          promoteMsg.textContent = "";
+          promoteForm.style.display = "none";
+        });
+
+        promoteForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          promoteMsg.textContent = "";
+
+          const email = promoteEmail.value.trim();
+          if (!email) return;
+
+          try {
+            const result = await callAdminApi({
+              action: "set_admin",
+              target_email: email,
+              make_admin: true
+            });
+
+            promoteMsg.textContent = result.ok
+              ? `✅ ${result.user.email} promoted to admin.`
+              : `❌ ${result.error || "Failed to promote."}`;
+          } catch (err) {
+            console.error(err);
+            promoteMsg.textContent = `❌ ${err.message || "Request failed."}`;
+          }
+        });
+
+        // Meeting start/end
+        const startMeetingForm = document.getElementById("startMeetingForm");
+        const meetingTitleInput = document.getElementById("meetingTitle");
+        const endMeetingBtn = document.getElementById("endMeetingBtn");
+        const adminMeetingMsg = document.getElementById("adminMeetingMsg");
+        const adminMeetingCode = document.getElementById("adminMeetingCode");
+
+        startMeetingForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          adminMeetingMsg.textContent = "";
+          adminMeetingCode.textContent = "";
+
+          const title = (meetingTitleInput.value || "").trim() || "WiC Meeting";
+
+          try {
+            const result = await callAttendanceApi({ action: "start_meeting", title });
+            if (result.ok) {
+              adminMeetingMsg.textContent = `✅ Meeting started: ${result.meeting.title}`;
+              adminMeetingCode.textContent = `Code: ${result.meeting.code} (window: ${result.window_minutes} min)`;
+            } else {
+              adminMeetingMsg.textContent = `❌ ${result.error || "Failed to start meeting"}`;
+            }
+          } catch (err) {
+            console.error(err);
+            adminMeetingMsg.textContent = `❌ ${err.message || "Failed to start meeting"}`;
+          }
+        });
+
+        endMeetingBtn.addEventListener("click", async () => {
+          adminMeetingMsg.textContent = "";
+          adminMeetingCode.textContent = "";
+
+          try {
+            const result = await callAttendanceApi({ action: "end_meeting" });
+            adminMeetingMsg.textContent = result.ok
+              ? "✅ Meeting ended."
+              : `❌ ${result.error || "Failed to end meeting"}`;
+
+            // refresh stats after ending meeting (total meetings changes)
+            if (result.ok) await loadMyAttendanceStats();
+          } catch (err) {
+            console.error(err);
+            adminMeetingMsg.textContent = `❌ ${err.message || "Failed to end meeting"}`;
+          }
+        });
+      }
+
+      // Menu actions
+      document.getElementById("menuHome").addEventListener("click", (e) => {
+        e.preventDefault();
+        clearMsg();
+        showSection("sectionHome");
+      });
+
+      document.getElementById("menuProfile").addEventListener("click", (e) => {
+        e.preventDefault();
+        clearMsg();
+        showSection("sectionProfile");
+      });
+
+      document.getElementById("menuLogout").addEventListener("click", async (e) => {
+        e.preventDefault();
+        await window.signOut();
+        window.location.href = "index.html";
+      });
+
+      // Save profile
+      document.getElementById("profileForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearMsg();
+
+        const fullName = document.getElementById("fullName").value.trim();
+        if (!fullName) {
+          showMsg("Full name is required.", "error");
+          return;
+        }
+
+        const updated = {
+          full_name: fullName,
+          major: document.getElementById("major").value.trim() || null,
+          grad_year: document.getElementById("gradYear").value
+            ? Number(document.getElementById("gradYear").value)
+            : null
+        };
+
+        try {
+          await upsertProfile(session.user.id, session.user.email, updated);
+
+          profile = await fetchProfile(session.user.id);
+          setProfileUI(profile, session.user.email);
+
+          document.getElementById("welcomeTitle").textContent =
+            profile?.full_name ? `Profile — ${profile.full_name}` : "Your Profile";
+          document.getElementById("homeWelcome").textContent =
+            profile?.full_name ? `Welcome, ${profile.full_name}!` : "Welcome!";
+
+          showMsg("Profile saved!", "success");
+          showSection("sectionHome");
+        } catch (err) {
+          console.error(err);
+          showMsg(err.message || "Failed to save profile.", "error");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
