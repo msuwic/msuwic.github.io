@@ -1,0 +1,145 @@
+/* assets/css/login.css */
+/* Minimal, calm WiC look (no big gradients, subtle accents) */
+
+:root{
+    --wic-purple: #5B2C83;
+    --wic-turq: #18B7B0;
+  
+    --bg: #f7f8fb;
+    --card: #ffffff;
+    --text: #101828;
+    --muted: #667085;
+    --border: rgba(16,24,40,0.10);
+    --shadow: 0 10px 30px rgba(16,24,40,0.10);
+    --radius: 14px;
+  }
+  
+  html, body{ height: 100%; }
+  
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    line-height: 1.35;
+  }
+  
+  /* Center the existing .container */
+  .container{
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 26px 26px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Thin top accent bar */
+  .container::before{
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--wic-purple), var(--wic-turq));
+  }
+  
+  /* Title */
+  h2{
+    margin: 4px 0 18px;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  
+  /* Form spacing */
+  #authForm{
+    margin-top: 10px;
+  }
+  
+  /* Labels */
+  .form-group label{
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  
+  /* Inputs */
+  .form-control{
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid rgba(16,24,40,0.14);
+    box-shadow: none;
+    padding: 10px 12px;
+  }
+  
+  .form-control:focus{
+    border-color: rgba(91,44,131,0.55);
+    box-shadow: 0 0 0 3px rgba(91,44,131,0.14);
+  }
+  
+  /* Primary button (solid, modern) */
+  .btn.btn-primary{
+    width: 100%;
+    height: 44px;
+    border-radius: 10px;
+    border: none;
+    background: var(--wic-purple);
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+  
+  .btn.btn-primary:hover,
+  .btn.btn-primary:focus{
+    background: #4a236a;
+  }
+  
+  /* Signup line */
+  #authForm p{
+    margin: 14px 0 0 !important;
+    color: var(--muted);
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  /* Signup link */
+  #authForm p a{
+    color: var(--wic-turq);
+    font-weight: 800;
+    text-decoration: none;
+  }
+  
+  #authForm p a:hover{
+    text-decoration: underline;
+  }
+  
+  /* Message area */
+  #msg{
+    margin-top: 14px !important;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    color: var(--text);
+    background: rgba(16,24,40,0.03);
+    border: 1px solid rgba(16,24,40,0.08);
+  }
+  
+  /* Hide message styling when empty */
+  #msg:empty{
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+  
+  /* Mobile tweaks */
+  @media (max-width: 520px){
+    .container{
+      padding: 22px 18px 18px;
+    }
+  }
